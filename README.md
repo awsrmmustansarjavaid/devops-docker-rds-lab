@@ -297,7 +297,7 @@ sudo ./deploy.sh
 
 - Nginx is running and forwarding port 80 → 8080
 
-- Browser: http://EC2_PUBLIC_IP → app loads and connects to RDS via Secrets Manager
+- Browser: http://EC2_PUBLIC_IP → app loads and DevOps Lab Connected to RDS Successfully ✅
 
 ### 6️⃣ — Configure GitHub Actions CI/CD
 
