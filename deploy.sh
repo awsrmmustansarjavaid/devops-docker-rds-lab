@@ -2,11 +2,11 @@
 
 echo "Updating system"
 
-sudo apt update -y
+sudo yum update -y
 
 echo "Installing Docker"
 
-sudo apt install docker.io -y
+sudo yum install docker -y
 
 sudo systemctl start docker
 sudo systemctl enable docker
@@ -18,5 +18,3 @@ sudo docker build -t devops-lab .
 echo "Running Container"
 
 sudo docker run -d -p 80:80 devops-lab
-
-echo "Deployment Complete"
