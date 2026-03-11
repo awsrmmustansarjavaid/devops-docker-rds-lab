@@ -41,6 +41,112 @@ dbname: cafe_db
 
 - GitHub repository for your project
 
+### 1️⃣ Dockerfile
+
+Place this in the root of your repo (devops-docker-rds-lab/Dockerfile):
+
+```
+# Use official PHP + Apache image
+FROM php:8.2-apache
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    curl \
+    && docker-php-ext-install mysqli
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php \
+    && mv composer.phar /usr/local/bin/composer
+
+# Copy app code into Apache root
+COPY app/ /var/www/html/
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Install AWS SDK for PHP (for Secrets Manager access)
+RUN composer require aws/aws-sdk-php
+
+# Expose port 80
+EXPOSE 80
+```
+
+2️⃣ index.php
+
+Create folder app/ inside your repo and add index.php:
+
+```
+<?php
+require 'vendor/autoload.php';
+
+use Aws\SecretsManager\SecretsManagerClient;
+use Aws\Exception\AwsException;
+
+// AWS Region
+$region = 'us-east-1';
+$secretName = 'CafeDevDBSM'; // Your Secrets Manager secret name
+
+// Create Secrets Manager client
+$client = new SecretsManagerClient([
+    'version' => 'latest',
+    'region'  => $region,
+]);
+
+try {
+    $result = $client->getSecretValue([
+        'SecretId' => $secretName,
+    ]);
+    $secret = json_decode($result['SecretString'], true);
+
+    $host = $secret['host'];
+    $dbname = $secret['dbname'];
+    $username = $secret['username'];
+    $password = $secret['password'];
+
+    $mysqli = new mysqli($host, $username, $password, $dbname);
+
+    if ($mysqli->connect_errno) {
+        echo "Failed to connect to MySQL: " . $mysqli->connect_error;
+        exit();
+    }
+
+    echo "<h1>DevOps Lab Connected to RDS Successfully ✅</h1>";
+
+    $query = $mysqli->query("SELECT NOW() AS time");
+    $row = $query->fetch_assoc();
+    echo "<p>Server time: " . $row['time'] . "</p>";
+
+    $mysqli->close();
+} catch (AwsException $e) {
+    echo "Error retrieving secret: " . $e->getMessage();
+}
+```
+
+### 3️⃣ Folder Structure
+
+```
+devops-docker-rds-lab/
+│
+├── Dockerfile
+├── deploy.sh
+├── README.md
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+└── app/
+    └── index.php
+```
+
+### ✅ With this structure, your deploy.sh, Dockerfile, and index.php all work together.
+
+- Docker builds the PHP app
+
+- index.php reads Secrets Manager credentials to connect to RDS
+
+- Nginx reverse proxy routes port 80 → Docker container
+
 ### 1️⃣ — Connect to EC2 and update system
 
 ```
@@ -89,33 +195,35 @@ Create deploy.sh (final version combines Docker + Nginx + verification):
 ```
 #!/bin/bash
 
-echo "===== Updating System ====="
+echo "===== 1. Updating System ====="
 sudo yum update -y
 
-echo "===== Installing Docker ====="
+echo "===== 2. Installing Docker ====="
 sudo yum install docker -y
 sudo systemctl start docker
 sudo systemctl enable docker
+docker --version
 
-echo "===== Stop old Docker containers ====="
+echo "===== 3. Stop old Docker containers (if any) ====="
 OLD_CONTAINERS=$(sudo docker ps -q)
 if [ ! -z "$OLD_CONTAINERS" ]; then
+    echo "Stopping old containers..."
     sudo docker stop $OLD_CONTAINERS
     sudo docker rm $OLD_CONTAINERS
 fi
 
-echo "===== Building Docker Image ====="
+echo "===== 4. Building Docker Image ====="
 sudo docker build -t devops-lab .
 
-echo "===== Running Docker Container on 8080 ====="
+echo "===== 5. Running Docker Container on 8080 ====="
 sudo docker run -d -p 8080:80 devops-lab
 
-echo "===== Installing/Starting Nginx ====="
+echo "===== 6. Installing and Starting Nginx ====="
 sudo yum install nginx -y
 sudo systemctl start nginx
 sudo systemctl enable nginx
 
-echo "===== Configuring Nginx Reverse Proxy ====="
+echo "===== 7. Configuring Nginx Reverse Proxy ====="
 sudo tee /etc/nginx/conf.d/devops.conf > /dev/null <<EOF
 server {
     listen 80;
@@ -129,16 +237,47 @@ server {
 }
 EOF
 
+echo "===== 8. Test Nginx Configuration ====="
 sudo nginx -t
+
+echo "===== 9. Restart Nginx ====="
 sudo systemctl restart nginx
 
-echo "===== Verification ====="
+echo "===== 10. Verifications ====="
 echo "Docker Containers:"
 sudo docker ps
+
 echo "Nginx Status:"
 sudo systemctl status nginx
-echo "Access app via: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)"
+
+EC2_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+echo "You can access the app in your browser at:"
+echo "http://$EC2_IP"
+
+echo "✅ Deployment Complete! Your PHP app is running in Docker, connected to RDS via Secrets Manager, and served through Nginx."
 ```
+
+#### ✅ What this script does
+
+- Updates your EC2 system
+
+- Installs Docker (if not installed)
+
+- Stops and removes any old containers to prevent port conflicts
+
+- Builds the Docker image for your PHP app
+
+- Runs the Docker container on port 8080
+
+- Installs Nginx and enables it to start on boot
+
+- Configures Nginx reverse proxy (port 80 → Docker 8080)
+
+- Tests Nginx configuration for errors
+
+- Restarts Nginx
+
+- Prints a full verification: Docker containers, Nginx status, and browser URL
 
 #### Make it executable:
 
