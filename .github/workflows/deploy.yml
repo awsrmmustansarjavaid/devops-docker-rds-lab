@@ -6,22 +6,23 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
+
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.7.1
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.1
       with:
         ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-    - name: Copy files to EC2
+    - name: Copy Files to EC2
       run: |
         scp -o StrictHostKeyChecking=no -r * ec2-user@EC2_PUBLIC_IP:/home/ec2-user/devops-docker-rds-lab
 
-    - name: Run deploy script
+    - name: Deploy on EC2
       run: |
-        ssh -o StrictHostKeyChecking=no ec2-user@EC2_PUBLIC_IP "cd /home/ec2-user/devops-docker-rds-lab && sudo ./deploy.sh"
+        ssh -o StrictHostKeyChecking=no ec2-user@EC2_PUBLIC_IP "cd devops-docker-rds-lab && sudo ./deploy.sh"
