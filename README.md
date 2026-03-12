@@ -1724,6 +1724,27 @@ GitHub → Actions
 
 Workflow runs automatically.
 
+### 🔴 — Optional: HTTPS with Nginx
+
+```
+sudo yum install certbot python3-certbot-nginx -y
+sudo certbot --nginx
+```
+
+Follow prompts to secure your domain with SSL
+
+### 🔴 — Lab Verification
+
+- Docker container running on 8080 ✅
+
+- Nginx running and reverse proxying port 80 ✅
+
+- EC2 app connects to RDS via Secrets Manager ✅
+
+- GitHub Actions deploy updates automatically ✅
+
+- Browser: http://EC2_PUBLIC_IP shows app ✅
+
 ### ✅ FINAL RESULT
 
 Your lab demonstrates:
@@ -1740,7 +1761,7 @@ Your lab demonstrates:
 
 This is excellent DevOps portfolio project.
 
-### 6️⃣ Final DevOps Flow (Your Lab)
+### ✅ Final DevOps Flow (Your Lab)
 
 Your architecture now:
 
@@ -1768,258 +1789,7 @@ RDS + Secrets Manager
 
 This is a real DevOps architecture 👍
 
-
-----
-
-
-
-
-
-
-### 5️⃣  — Write deploy.sh script
-
-Create deploy.sh (final version combines Docker + Nginx + verification):Step 5 — Write deploy.sh script
-
-Create deploy.sh (final version combines Docker + Nginx + verification):
-
-```
-#!/bin/bash
-
-echo "===== 1. Updating System ====="
-sudo yum update -y
-
-echo "===== 2. Installing Docker ====="
-sudo yum install docker -y
-sudo systemctl start docker
-sudo systemctl enable docker
-docker --version
-
-echo "===== 3. Stop old Docker containers (if any) ====="
-OLD_CONTAINERS=$(sudo docker ps -q)
-if [ ! -z "$OLD_CONTAINERS" ]; then
-    echo "Stopping old containers..."
-    sudo docker stop $OLD_CONTAINERS
-    sudo docker rm $OLD_CONTAINERS
-fi
-
-echo "===== 4. Building Docker Image ====="
-sudo docker build -t devops-lab .
-
-echo "===== 5. Running Docker Container on 8080 ====="
-sudo docker run -d -p 8080:80 devops-lab
-
-echo "===== 6. Installing and Starting Nginx ====="
-sudo yum install nginx -y
-sudo systemctl start nginx
-sudo systemctl enable nginx
-
-echo "===== 7. Configuring Nginx Reverse Proxy ====="
-sudo tee /etc/nginx/conf.d/devops.conf > /dev/null <<EOF
-server {
-    listen 80;
-    server_name _;
-
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-    }
-}
-EOF
-
-echo "===== 8. Test Nginx Configuration ====="
-sudo nginx -t
-
-echo "===== 9. Restart Nginx ====="
-sudo systemctl restart nginx
-
-echo "===== 10. Verifications ====="
-echo "Docker Containers:"
-sudo docker ps
-
-echo "Nginx Status:"
-sudo systemctl status nginx
-
-EC2_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-echo "You can access the app in your browser at:"
-echo "http://$EC2_IP"
-
-echo "✅ Deployment Complete! Your PHP app is running in Docker, connected to RDS via Secrets Manager, and served through Nginx."
-```
-
-#### ✅ What this script does
-
-- Updates your EC2 system
-
-- Installs Docker (if not installed)
-
-- Stops and removes any old containers to prevent port conflicts
-
-- Builds the Docker image for your PHP app
-
-- Runs the Docker container on port 8080
-
-- Installs Nginx and enables it to start on boot
-
-- Configures Nginx reverse proxy (port 80 → Docker 8080)
-
-- Tests Nginx configuration for errors
-
-- Restarts Nginx
-
-- Prints a full verification: Docker containers, Nginx status, and browser URL
-
-#### Make it executable:
-
-```
-sudo chmod +x deploy.sh
-```
-
-#### Test deploy.sh locally
-
-```
-sudo ./deploy.sh
-```
-
-#### ✅ Verify:
-
-- Docker container is running on 8080
-
-- Nginx is running and forwarding port 80 → 8080
-
-- Browser: http://EC2_PUBLIC_IP → app loads and DevOps Lab Connected to RDS Successfully ✅
-
-### 6️⃣ — Configure GitHub Actions CI/CD
-
-### 1️⃣ — Add EC2 SSH key as GitHub Secret
-
-- Copy EC2 private key (Public.pem) content
-
-- Go to GitHub → Settings → Secrets → Actions → New repository secret
-
-- Name: EC2_SSH_KEY
-
-- Value: paste the full private key
-
-### 2️⃣  — Create workflow
-
-#### 1️⃣ Create GitHub Actions Workflow
-
-On your local machine, inside your repo:
-
-```
-sudo mkdir -p .github/workflows
-```
-
-```
-sudo nano .github/workflows/deploy.yml
-```
-
-- Paste the following workflow:
-
-```
-name: DevOps Lab CI/CD
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
-
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.8.1
-      with:
-        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-
-    - name: Copy files to EC2
-      run: |
-        scp -o StrictHostKeyChecking=no -r * ec2-user@EC2_PUBLIC_IP:/home/ec2-user/devops-docker-rds-lab
-
-    - name: Run deploy script on EC2
-      run: |
-        ssh -o StrictHostKeyChecking=no ec2-user@EC2_PUBLIC_IP "cd /home/ec2-user/devops-docker-rds-lab && sudo ./deploy.sh"
-```
-
-#### Example 
-
-```
-scp -o StrictHostKeyChecking=no -r * ec2-user@ec2-32-195-65-23.compute-1.amazonaws.com:/home/ec2-user/devops-docker-rds-lab
-```
-
-```
-ssh -o StrictHostKeyChecking=no ec2-user@ec2-32-195-65-23.compute-1.amazonaws.com "cd /home/ec2-user/devops-docker-rds-lab && sudo ./deploy.sh"
-```
-
-- Replace EC2_PUBLIC_IP with your EC2 public IP.
-
-- Save and exit (CTRL+O, Enter, CTRL+X).
-
-### 7️⃣ — Test CI/CD
-
-- Edit a file in repo, e.g., index.php → add a test header
-
-```
-echo "<h1>CI/CD Test ✅</h1>";
-```
-
-- Commit and push:
-
-```
-git add .
-git commit -m "Test CI/CD workflow"
-git push origin main
-```
-
-- Go to GitHub → Actions → workflow should run automatically
-
-- Verify: http://EC2_PUBLIC_IP shows updated header
-
-### 8️⃣ — Optional: HTTPS with Nginx
-
-```
-sudo yum install certbot python3-certbot-nginx -y
-sudo certbot --nginx
-```
-
-Follow prompts to secure your domain with SSL
-
-### 9️⃣ — Lab Verification
-
-- Docker container running on 8080 ✅
-
-- Nginx running and reverse proxying port 80 ✅
-
-- EC2 app connects to RDS via Secrets Manager ✅
-
-- GitHub Actions deploy updates automatically ✅
-
-- Browser: http://EC2_PUBLIC_IP shows app ✅
-
-### ✅ Result
-
-This single lab now demonstrates all core DevOps skills:
-
-- AWS EC2 + Docker
-
-- AWS RDS + Secrets Manager
-
-- Bash automation
-
-- Nginx reverse proxy
-
-- GitHub Actions CI/CD
-
-It’s a strong DevOps portfolio project for your resume.
-
----
-## 🌐 Amazon Linux 2023
+### 🌐 Amazon Linux 2023
 
 ### 1️⃣ Delete all directories in the current directory
 
@@ -2078,6 +1848,205 @@ ls -d */
 ```
 
 This lists all directories in the current folder so you can confirm before deleting.
+
+### completely clean lab
+
+> #### remove Docker, Git, MariaDB client, Nginx, and delete all files in the current directory
+
+⚠️ Be careful: these commands permanently delete data.
+
+### 1️⃣ Uninstall Docker completely
+
+> #### Stop Docker and remove containers/images first.
+
+#### Stop docker
+
+```
+sudo systemctl stop docker
+```
+
+#### Remove all containers
+
+```
+sudo docker ps -aq | xargs -r sudo docker stop
+```
+
+```
+sudo docker ps -aq | xargs -r sudo docker rm
+```
+
+#### Remove images
+
+```    
+sudo docker images -aq | xargs -r sudo docker rmi -f
+```
+
+Now uninstall Docker:
+
+```
+sudo dnf remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine -y
+```
+
+Remove Docker data:
+
+```
+sudo rm -rf /var/lib/docker
+sudo rm -rf /var/run/docker
+sudo rm -rf /etc/docker
+```
+
+Verify:
+
+```
+docker --version
+```
+
+You should see command not found.
+
+### 2️⃣ Uninstall RDS MariaDB client
+
+If you installed mariadb or mysql client:
+
+Check installed packages:
+
+```
+dnf list installed | grep -i maria
+```
+
+Remove them:
+
+```
+sudo dnf remove mariadb mariadb105 mariadb-server mysql -y
+```
+
+Remove leftover data:
+
+```
+sudo rm -rf /var/lib/mysql
+sudo rm -rf /etc/my.cnf
+```
+
+Verify:
+
+```
+mysql --version
+```
+
+### 3️⃣ Uninstall Git
+
+```
+sudo dnf remove git -y
+```
+
+Verify:
+
+```
+git --version
+```
+
+### 4️⃣ Delete all files in current directory (PWD)
+
+First confirm where you are:
+
+```
+pwd
+```
+
+Example:
+
+```
+/home/ec2-user/devops-docker-rds-lab
+```
+
+Delete everything inside:
+
+```
+rm -rf *
+rm -rf .*
+```
+
+Safer command:
+
+```
+rm -rf * .[^.]*
+```
+
+Verify:
+
+```
+ls -la
+```
+
+Directory should be empty.
+
+### 5️⃣ Remove Nginx completely (with configs + data)
+
+Stop nginx:
+
+```
+sudo systemctl stop nginx
+```
+
+Remove nginx package:
+
+```
+sudo dnf remove nginx -y
+```
+
+Delete nginx data/configs:
+
+```
+sudo rm -rf /etc/nginx
+sudo rm -rf /var/log/nginx
+sudo rm -rf /var/lib/nginx
+sudo rm -rf /usr/share/nginx
+```
+
+Verify:
+
+```
+nginx -v
+```
+
+### 6️⃣ Clean unused packages
+
+```
+sudo dnf autoremove -y
+sudo dnf clean all
+```
+
+### 7️⃣ Final verification
+
+Run:
+
+```
+docker --version
+git --version
+nginx -v
+mysql --version
+```
+
+All should return:
+
+```
+command not found
+```
+
+### 8️⃣ Optional (best clean lab reset)
+
+If this is just a DevOps lab, the cleanest method is actually:
+
+Stop instance → Terminate EC2 → Launch a new EC2.
+
+Why?
+
+• Faster
+• No leftover configs
+• Fully clean OS
+
+This is what most DevOps engineers do in labs.
+
+✅ If you want, I can also show you a super useful DevOps trick:
 ---
 
 
