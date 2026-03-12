@@ -1130,19 +1130,36 @@ Perfect! Now we’ll upgrade your script to use Docker Compose so it can:
 
 ### ✅ Here’s a full Docker Compose + Bash script setup for your Charlie Café lab.
 
-### Step 1: Install Docker Compose Plugin (v2 style)
+### ✅ How to Install Docker Compose on Amazon Linux 2023
 
-Amazon Linux 2023 uses Docker Compose as a plugin, not a separate binary. Run:
+### Step 1 — Create the plugin directory
 
 ```
-sudo dnf install -y docker-compose-plugin
+sudo mkdir -p /usr/local/lib/docker/cli-plugins
 ```
 
-#### Check it is installed:
+### Step 2 — Download the Docker Compose binary
+
+```
+sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m) \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+```
+
+This downloads the latest Docker Compose v2 binary for your architecture.
+
+### Step 3 — Make it executable
+
+```
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+```
+
+### Step 4 — Verify installation
 
 ```
 docker compose version
 ```
+
+If everything is correct, this will show the installed Docker Compose version and confirm it works with the docker compose syntax.
 
 > #### Notice: no dash between docker and compose now. You run it as docker compose (v2 style), not docker-compose.
 
