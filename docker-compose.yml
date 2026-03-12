@@ -1,0 +1,8 @@
+version: '3.9'
+
+services:
+  mariadb-client:
+    image: mariadb:10.11.6
+    container_name: mariadb-client
+    restart: "no"
+    entrypoint: ["tail", "-f", "/dev/null"]  # keep container running for bash exec
