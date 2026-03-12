@@ -1824,6 +1824,16 @@ jobs:
         ssh -o StrictHostKeyChecking=no ec2-user@EC2_PUBLIC_IP "cd /home/ec2-user/devops-docker-rds-lab && sudo ./deploy.sh"
 ```
 
+#### Example 
+
+```
+scp -o StrictHostKeyChecking=no -r * ec2-user@ec2-32-195-65-23.compute-1.amazonaws.com:/home/ec2-user/devops-docker-rds-lab
+```
+
+```
+ssh -o StrictHostKeyChecking=no ec2-user@ec2-32-195-65-23.compute-1.amazonaws.com "cd /home/ec2-user/devops-docker-rds-lab && sudo ./deploy.sh"
+```
+
 - Replace EC2_PUBLIC_IP with your EC2 public IP.
 
 - Save and exit (CTRL+O, Enter, CTRL+X).
