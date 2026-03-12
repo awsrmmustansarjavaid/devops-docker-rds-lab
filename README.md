@@ -545,7 +545,126 @@ devops-docker-rds-lab/
 
 ### 2️⃣ Charlie Café Project Configurations
 
-### 1️⃣ — Launch EC2 Instance
+### 1️⃣ — RDS & Secret Manager Configuration
+
+#### 1️⃣ Create DB Subnet Group
+
+- AWS Console → RDS → Subnet groups → Create
+
+- Name: CafeRDSSubnetGroup
+
+- VPC: CafeDevVPC
+
+- Subnets: PRIVATE subnets (2 AZs)
+
+- ✔️ Create
+
+#### 2️⃣ Create Security Group for RDS
+
+- VPC → Security Groups → Create
+
+- Name: CafeRDS-SG
+
+- Inbound:
+
+MySQL/Aurora (3306) → Source: Lambda-SG
+MySQL/Aurora (3306) → Source: EC2-Web-SG
+Outbound: All
+
+- ✔️ Create
+
+#### 3️⃣ Create RDS Instance
+
+- RDS → Databases → Create database
+
+- Engine: MySQL (or MariaDB)
+
+- Template: Free tier
+
+- DB identifier: cafedb
+
+- Username: cafe_user
+
+- Password: StrongPassword123
+
+- VPC: CafeDevVPC
+
+- Subnet group: CafeRDSSubnetGroup
+
+- Public access: ❌ No
+
+- Security group: CafeRDS-SG
+
+- Backup: Enabled
+
+- ✔️ Create database ⏳
+
+#### 4️⃣ Store DB Credentials in Secrets Manager
+
+- Go to Secrets Manager → Store a new secret
+
+- Type: Other type of secret → Key/Value
+
+| Key      | Value              |
+|----------|--------------------|
+| username | cafe_user          |
+| password | StrongPassword123  |
+| host     | RDS endpoint       |
+| dbname   | cafe_db            |
+
+- Retrieve Secret ARN for later use in the app
+
+### ✅ JSON Key/Value
+
+```
+{
+  "username": "cafe_user",
+  "password": "StrongPassword123",
+  "host": "your-rds-endpoint.amazonaws.com",
+  "dbname": "cafe_db"
+}
+```
+
+#### ✅  Replace These Values
+
+- username → cafe_user (your DB user)
+
+- password → StrongPassword123 (your real DB password)
+
+- host → your RDS endpoint (example: cafedb.xxxxxx.us-east-1.rds.amazonaws.com)
+
+- dbname → cafe_db
+
+#### Example With Real Format
+
+```
+{
+  "username": "cafe_user",
+  "password": "StrongPassword123",
+  "host": "cafedb.abc123xyz.us-east-1.rds.amazonaws.com",
+  "dbname": "cafe_db"
+}
+```
+
+### ✅ Secret Name
+
+```
+CafeDevDBSM
+```
+
+### ✅ After Creating the Secret
+
+Copy the Secret ARN. It will look like:
+
+```
+arn:aws:secretsmanager:us-east-1:123456789012:secret:CafeDevDBSM-xxxxx
+```
+
+#### ✅ You will use this ARN inside your AWS Lambda code to retrieve the database credentials.
+
+
+
+### 2️⃣ — Launch EC2 Instance
 
 - Create an EC2 instance in Amazon Web Services.
 
@@ -741,14 +860,21 @@ sudo chmod +x connect-rds.sh
 sudo ./connect-rds.sh
 ```
 
+#### ✅ Features Added:
 
+- MariaDB installation for Amazon Linux 2023 with version check
 
+- AWS Secrets Manager integration for secure DB credentials
 
+- Database creation (cafe_db)
 
+- Random table creation (employees) with sample rows
 
+- Verification queries to check table creation and inserted data
 
+- Full error checking with exit codes
 
-### 6️⃣ — Clone Your GitHub Repository
+### 4️⃣ — Clone Your GitHub Repository
 
 #### ✅ Your repo example:
 
