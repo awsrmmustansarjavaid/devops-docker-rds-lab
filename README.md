@@ -1207,10 +1207,11 @@ services:
 # CHARLIE CAFÉ DOCKER COMPOSE + MARIADB SETUP SCRIPT
 # ==========================================================
 # This script:
-# 1️⃣ Starts a MariaDB client container via Docker Compose
-# 2️⃣ Fetches AWS RDS credentials from Secrets Manager
-# 3️⃣ Creates database, table, inserts random data
-# 4️⃣ Verifies creation
+# 1️⃣ Installs Docker Compose if missing (Amazon Linux 2023)
+# 2️⃣ Starts a MariaDB client container via Docker Compose
+# 3️⃣ Fetches AWS RDS credentials from Secrets Manager
+# 4️⃣ Creates database, table, inserts random data
+# 5️⃣ Verifies creation
 # ==========================================================
 
 # ===============================
@@ -1230,23 +1231,45 @@ log() {
 }
 
 # ===============================
-# CHECK DOCKER & DOCKER-COMPOSE
+# CHECK DOCKER
 # ===============================
 if ! command -v docker &> /dev/null; then
     log "❌ Docker not installed."
     exit 1
 fi
-if ! command -v docker-compose &> /dev/null; then
-    log "❌ Docker Compose not installed."
-    exit 1
+
+# ===============================
+# CHECK & INSTALL DOCKER COMPOSE
+# ===============================
+if ! docker compose version &> /dev/null; then
+    log "🔹 Docker Compose not found. Installing..."
+    
+    # Step 1 — Create plugin directory
+    sudo mkdir -p /usr/local/lib/docker/cli-plugins
+    
+    # Step 2 — Download Docker Compose binary
+    sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m) \
+      -o /usr/local/lib/docker/cli-plugins/docker-compose
+    
+    # Step 3 — Make it executable
+    sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+    
+    # Step 4 — Verify installation
+    if docker compose version &> /dev/null; then
+        log "✅ Docker Compose installed successfully"
+    else
+        log "❌ Docker Compose installation failed"
+        exit 1
+    fi
+else
+    log "✅ Docker Compose already installed"
 fi
-log "✅ Docker and Docker Compose are installed"
 
 # ===============================
 # START DOCKER COMPOSE SERVICE
 # ===============================
 log "🔹 Starting MariaDB client container..."
-docker-compose up -d
+docker compose up -d
 
 # ===============================
 # FETCH AWS RDS CREDENTIALS
