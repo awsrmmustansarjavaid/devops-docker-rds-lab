@@ -1620,6 +1620,19 @@ jobs:
 echo "<h2>CI/CD Test Success</h2>";
 ```
 
+#### ✅ Confirm your workflow exists:
+
+```
+ls .github/workflows/
+```
+
+You should see:
+
+```
+deploy.yml
+```
+
+
 #### 2️⃣ Commit:
 
 ```
@@ -1726,6 +1739,36 @@ Your lab demonstrates:
 ✅ GitHub CI/CD automation
 
 This is excellent DevOps portfolio project.
+
+### 6️⃣ Final DevOps Flow (Your Lab)
+
+Your architecture now:
+
+```
+GitHub
+   │
+   │ push
+   ▼
+GitHub Actions
+   │
+   │ SSH
+   ▼
+EC2 Server
+   │
+   │ build
+   ▼
+Docker Container
+   │
+   ▼
+PHP App
+   │
+   ▼
+RDS + Secrets Manager
+```
+
+This is a real DevOps architecture 👍
+
+
 ----
 
 
