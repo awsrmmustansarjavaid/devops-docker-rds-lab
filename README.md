@@ -731,6 +731,17 @@ or
 sudo nano connect-rds.sh
 ```
 
+[connect-rds.sh](./connect-rds.sh)
+
+```
+sudo chmod +x connect-rds.sh
+```
+
+```
+sudo ./connect-rds.sh
+```
+
+
 
 
 
