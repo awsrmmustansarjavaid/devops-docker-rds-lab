@@ -1628,7 +1628,82 @@ git commit -m "CI/CD test"
 git push origin main
 ```
 
-#### 3️⃣ Open:
+If Git refuses to push
+
+```
+git pull origin main --rebase
+```
+
+#### This will:
+
+• Download latest GitHub commits
+• Replay your commit on top of them
+
+#### Then push again:
+
+```
+git push origin main
+```
+
+### 🔟 GitHub Password Authentication Issue
+
+GitHub no longer allows password authentication.
+
+You must use a Personal Access Token (PAT).
+
+#### Create it here:
+
+👉
+https://github.com/settings/tokens
+
+#### Create:
+
+```
+Token type: Classic
+Scope: repo
+```
+
+Then when pushing:
+
+```
+Username: awsrmmustansarjavaid
+Password: <PASTE TOKEN HERE>
+```
+
+Not your GitHub password.
+
+### 🌐 Optional (Better DevOps Practice)
+
+Switch your repo to SSH instead of HTTPS.
+
+#### Check current remote:
+
+```
+git remote -v
+```
+
+If you see:
+
+```
+https://github.com/...
+```
+
+Change it:
+
+```
+git remote set-url origin git@github.com:awsrmmustansarjavaid/devops-docker-rds-lab.git
+```
+
+Then push normally:
+
+```
+git push origin main
+```
+
+No password needed.
+
+
+### 🔴 Open:
 
 ```
 GitHub → Actions
