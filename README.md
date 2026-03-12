@@ -1780,13 +1780,19 @@ sudo ./deploy.sh
 
 ### 2️⃣  — Create workflow
 
-- Folder:
+#### 1️⃣ Create GitHub Actions Workflow
+
+On your local machine, inside your repo:
 
 ```
-.github/workflows/deploy.yml
+sudo mkdir -p .github/workflows
 ```
 
-- Content:
+```
+sudo nano .github/workflows/deploy.yml
+```
+
+- Paste the following workflow:
 
 ```
 name: DevOps Lab CI/CD
@@ -1817,6 +1823,10 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no ec2-user@ec2-3-239-78-159.compute-1.amazonaws.com "cd /home/ec2-user/devops-docker-rds-lab && sudo ./deploy.sh"
 ```
+
+- Replace EC2_PUBLIC_IP with your EC2 public IP.
+
+- Save and exit (CTRL+O, Enter, CTRL+X).
 
 ### 7️⃣ — Test CI/CD
 
