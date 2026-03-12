@@ -593,6 +593,89 @@ secretsmanager:GetSecretValue
 ```
 
 
+### 1️⃣1️⃣ Setup CI/CD with GitHub Actions
+
+#### ✅ Platform: GitHub
+
+#### 1️⃣ Create:
+
+```
+.github/workflows/deploy.yml
+```
+
+#### 2️⃣ Content:
+
+```
+name: DevOps Lab CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.1
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+    - name: Copy Files to EC2
+      run: |
+        scp -o StrictHostKeyChecking=no -r * ec2-user@EC2_PUBLIC_IP:/home/ec2-user/devops-docker-rds-lab
+
+    - name: Deploy on EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@EC2_PUBLIC_IP "cd devops-docker-rds-lab && sudo ./deploy.sh"
+```
+
+#### 3️⃣ Test CI/CD
+
+#### ✅ Edit index.php:
+
+```
+echo "<h2>CI/CD Test Success</h2>";
+```
+
+#### ✅ Commit:
+
+```
+git add .
+git commit -m "CI/CD test"
+git push origin main
+```
+
+#### ✅ Open:
+
+```
+GitHub → Actions
+```
+
+Workflow runs automatically.
+
+### ✅ FINAL RESULT
+
+Your lab demonstrates:
+
+✅ Amazon Web Services EC2 + Docker
+
+✅ AWS Secrets Manager + RDS
+
+✅ Nginx reverse proxy
+
+✅ Docker containerized PHP app
+
+✅ GitHub CI/CD automation
+
+This is excellent DevOps portfolio project.
+----
 
 
 
