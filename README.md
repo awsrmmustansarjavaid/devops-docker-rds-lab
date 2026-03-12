@@ -638,13 +638,13 @@ jobs:
 
 #### 3️⃣ Test CI/CD
 
-#### ✅ Edit index.php:
+#### 1️⃣ Edit index.php:
 
 ```
 echo "<h2>CI/CD Test Success</h2>";
 ```
 
-#### ✅ Commit:
+#### 2️⃣ Commit:
 
 ```
 git add .
@@ -652,7 +652,7 @@ git commit -m "CI/CD test"
 git push origin main
 ```
 
-#### ✅ Open:
+#### 3️⃣ Open:
 
 ```
 GitHub → Actions
