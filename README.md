@@ -1817,11 +1817,11 @@ jobs:
 
     - name: Copy files to EC2
       run: |
-        scp -o StrictHostKeyChecking=no -r * ec2-user@ec2-3-239-78-159.compute-1.amazonaws.com:/home/ec2-user/devops-docker-rds-lab
+        scp -o StrictHostKeyChecking=no -r * ec2-user@ec2-32-195-65-23.compute-1.amazonaws.com:/home/ec2-user/devops-docker-rds-lab
 
     - name: Run deploy script on EC2
       run: |
-        ssh -o StrictHostKeyChecking=no ec2-user@ec2-3-239-78-159.compute-1.amazonaws.com "cd /home/ec2-user/devops-docker-rds-lab && sudo ./deploy.sh"
+        ssh -o StrictHostKeyChecking=no ec2-user@ec2-32-195-65-23.compute-1.amazonaws.com "cd /home/ec2-user/devops-docker-rds-lab && sudo ./deploy.sh"
 ```
 
 - Replace EC2_PUBLIC_IP with your EC2 public IP.
