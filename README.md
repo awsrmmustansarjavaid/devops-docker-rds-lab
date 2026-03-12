@@ -761,6 +761,11 @@ sudo systemctl enable docker
 docker --version
 ```
 
+```
+docker info
+```
+
+
 #### ✅ Example output:
 
 ```
