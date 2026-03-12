@@ -1163,7 +1163,7 @@ If everything is correct, this will show the installed Docker Compose version an
 
 > #### Notice: no dash between docker and compose now. You run it as docker compose (v2 style), not docker-compose.
 
-### Step 2: Update Your Script to Use New Docker Compose Command
+### Step 5: Update Your Script to Use New Docker Compose Command
 
 In your bash script, replace:
 
@@ -1179,7 +1179,7 @@ docker compose up -d
 
 And anywhere else you use docker-compose, replace with docker compose.
 
-### Step 3: Create Docker Compose File (docker-compose.yml)
+### Step 6: Create Docker Compose File (docker-compose.yml)
 
 ```
 version: '3.9'
@@ -1198,7 +1198,7 @@ services:
 
 - Container stays alive so you can exec commands from the bash script.
 
-### Step 4: Docker Compose + Bash Script (Recommanded)
+### Step 7: Docker Compose + Bash Script (Recommanded)
 
 ```
 #!/bin/bash
@@ -1316,7 +1316,7 @@ run_mysql "USE $DB_NAME; SHOW TABLES; SELECT * FROM $TABLE_NAME;"
 log "🎉 Charlie Café Docker Compose MariaDB setup complete!"
 ```
 
-### Step 5: Run the Script Again
+### Step 8: Run the Script Again
 
 ```
 sudo ./connect-rds.sh
