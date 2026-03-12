@@ -668,8 +668,6 @@ arn:aws:secretsmanager:us-east-1:123456789012:secret:CafeDevDBSM-xxxxx
 
 #### ✅ You will use this ARN inside your AWS Lambda code to retrieve the database credentials.
 
-
-
 ### 2️⃣ — Launch EC2 Instance
 
 - Create an EC2 instance in Amazon Web Services.
@@ -934,7 +932,7 @@ devops-docker-rds-lab
         └── deploy.yml
 ```
 
-### 7️⃣ — Build Docker Image
+### 5️⃣ — Build Docker Image
 
 #### 1️⃣ Run:
 
@@ -954,7 +952,7 @@ docker images
 devops-lab
 ```
 
-### 8️⃣ — Run Docker Container
+### 6️⃣ — Run Docker Container
 
 #### 1️⃣ Run container on port 8080:
 
@@ -975,9 +973,9 @@ PORTS
 0.0.0.0:8080->80
 ```
 
-### 8️⃣ — Test Container
+#### 3️⃣ — Test Container
 
-#### 1️⃣ Open browser:
+#### ✅ Open browser:
 
 ```
 http://EC2_PUBLIC_IP:8080
@@ -989,7 +987,7 @@ http://EC2_PUBLIC_IP:8080
 DevOps Lab Connected to RDS Successfully
 ```
 
-### 9️⃣ — Configure Nginx Reverse Proxy
+### 7️⃣ — Configure Nginx Reverse Proxy
 
 #### 1️⃣ Create config file:
 
@@ -1021,7 +1019,7 @@ ENTER
 CTRL+X
 ```
 
-### 🔟 — Verification
+### 8️⃣ — Verification
 
 #### 1️⃣ Test Nginx Config
 
@@ -1081,7 +1079,7 @@ secretsmanager:GetSecretValue
 ```
 
 
-### 1️⃣1️⃣ Setup CI/CD with GitHub Actions
+### 9️⃣ Setup CI/CD with GitHub Actions
 
 #### ✅ Platform: GitHub
 
