@@ -56,6 +56,8 @@ Nginx Reverse Proxy
 Browser
 ```
 
+![Charlie Café DevOps architecture on AWS](./Charlie%20Café%20DevOps%20architecture%20on%20AWS.png)
+
 ### Step 0 — Pre-requisites
 
 - AWS account with EC2, RDS, Secrets Manager configured
@@ -2046,7 +2048,186 @@ Why?
 
 This is what most DevOps engineers do in labs.
 
-✅ If you want, I can also show you a super useful DevOps trick:
+### 🚀 EC2 DevOps Lab Reset Script
+
+Create a script file first.
+
+```
+sudo nano reset-devops-lab.sh
+```
+Paste this script:
+
+```
+#!/bin/bash
+
+echo "========================================="
+echo "🚀 Charlie Café DevOps LAB RESET START"
+echo "========================================="
+
+echo ""
+echo "Stopping services..."
+
+sudo systemctl stop docker 2>/dev/null
+sudo systemctl stop nginx 2>/dev/null
+
+echo ""
+echo "Removing Docker containers..."
+
+sudo docker ps -aq | xargs -r sudo docker stop
+sudo docker ps -aq | xargs -r sudo docker rm
+
+echo ""
+echo "Removing Docker images..."
+
+sudo docker images -aq | xargs -r sudo docker rmi -f
+
+echo ""
+echo "Removing Docker installation..."
+
+sudo dnf remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine -y
+
+sudo rm -rf /var/lib/docker
+sudo rm -rf /var/run/docker
+sudo rm -rf /etc/docker
+
+echo ""
+echo "Removing MariaDB client..."
+
+sudo dnf remove mariadb mariadb105 mysql -y
+sudo rm -rf /var/lib/mysql
+
+echo ""
+echo "Removing Git..."
+
+sudo dnf remove git -y
+
+echo ""
+echo "Removing Nginx..."
+
+sudo dnf remove nginx -y
+
+sudo rm -rf /etc/nginx
+sudo rm -rf /var/log/nginx
+sudo rm -rf /var/lib/nginx
+sudo rm -rf /usr/share/nginx
+
+echo ""
+echo "Cleaning current project directory..."
+
+PROJECT_DIR="/home/ec2-user/devops-docker-rds-lab"
+
+if [ -d "$PROJECT_DIR" ]; then
+    rm -rf $PROJECT_DIR/*
+    rm -rf $PROJECT_DIR/.*
+fi
+
+echo ""
+echo "Updating system..."
+
+sudo dnf update -y
+
+echo ""
+echo "Reinstalling required packages..."
+
+sudo dnf install git docker nginx mariadb105 -y
+
+echo ""
+echo "Starting Docker..."
+
+sudo systemctl start docker
+sudo systemctl enable docker
+
+sudo usermod -aG docker ec2-user
+
+echo ""
+echo "Starting Nginx..."
+
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
+echo ""
+echo "========================================="
+echo "✅ DevOps LAB RESET COMPLETE"
+echo "========================================="
+
+echo ""
+echo "Installed versions:"
+
+echo ""
+echo "Git:"
+git --version
+
+echo ""
+echo "Docker:"
+docker --version
+
+echo ""
+echo "Nginx:"
+nginx -v
+
+echo ""
+echo "MariaDB Client:"
+mysql --version
+
+echo ""
+echo "========================================="
+echo "Server ready for new DevOps lab"
+echo "========================================="
+```
+
+### ▶️ Make the script executable
+
+```
+sudo chmod +x reset-devops-lab.sh
+```
+
+### ▶️ Run the reset
+
+```
+sudo ./reset-devops-lab.sh
+```
+
+#### The script will:
+
+✅ Stop services
+✅ Remove Docker containers
+✅ Remove Docker images
+✅ Uninstall Docker
+✅ Remove Git
+✅ Remove MariaDB client
+✅ Remove Nginx
+✅ Delete your project directory files
+✅ Update the system
+✅ Reinstall everything clean
+
+### ⚠️ After running script
+
+You should log out and login again so Docker permissions work.
+
+```
+exit
+```
+
+Reconnect to EC2.
+
+Then test:
+
+```
+docker ps
+git --version
+nginx -v
+mysql --version
+```
+
+### 🧠 DevOps Tip (Very Important)
+
+For labs, instead of cleaning manually, professionals usually:
+
+• Terminate EC2
+• Launch a fresh instance
+• Run a bootstrap script
+
+This is called Infrastructure as Code mindset.
 ---
 
 
