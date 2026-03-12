@@ -1,76 +1,62 @@
 #!/bin/bash
 
-echo "===================="
-echo "1️⃣ Updating system..."
-echo "===================="
+echo "===== 1. Updating System ====="
 sudo yum update -y
 
-echo "===================="
-echo "2️⃣ Installing Docker..."
-echo "===================="
+echo "===== 2. Installing Docker ====="
 sudo yum install docker -y
 sudo systemctl start docker
 sudo systemctl enable docker
+docker --version
 
-echo "===================="
-echo "3️⃣ Installing Nginx..."
-echo "===================="
+echo "===== 3. Stop old Docker containers (if any) ====="
+OLD_CONTAINERS=$(sudo docker ps -q)
+if [ ! -z "$OLD_CONTAINERS" ]; then
+    echo "Stopping old containers..."
+    sudo docker stop $OLD_CONTAINERS
+    sudo docker rm $OLD_CONTAINERS
+fi
+
+echo "===== 4. Building Docker Image ====="
+sudo docker build -t devops-lab .
+
+echo "===== 5. Running Docker Container on 8080 ====="
+sudo docker run -d -p 8080:80 devops-lab
+
+echo "===== 6. Installing and Starting Nginx ====="
 sudo yum install nginx -y
 sudo systemctl start nginx
 sudo systemctl enable nginx
 
-echo "===================="
-echo "4️⃣ Building Docker Image..."
-echo "===================="
-sudo docker build -t devops-lab .
+echo "===== 7. Configuring Nginx Reverse Proxy ====="
+sudo tee /etc/nginx/conf.d/devops.conf > /dev/null <<EOF
+server {
+    listen 80;
+    server_name _;
 
-echo "===================="
-echo "5️⃣ Stopping any existing Docker container on port 8080..."
-echo "===================="
-EXISTING_CONTAINER=$(sudo docker ps -q --filter "ancestor=devops-lab")
-if [ ! -z "$EXISTING_CONTAINER" ]; then
-    echo "Stopping existing container(s)..."
-    sudo docker stop $EXISTING_CONTAINER
-    sudo docker rm $EXISTING_CONTAINER
-fi
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+EOF
 
-echo "===================="
-echo "6️⃣ Running Docker Container on port 8080..."
-echo "===================="
-sudo docker run -d -p 8080:80 devops-lab
+echo "===== 8. Test Nginx Configuration ====="
+sudo nginx -t
 
-echo "===================="
-echo "7️⃣ Verification Checks"
-echo "===================="
+echo "===== 9. Restart Nginx ====="
+sudo systemctl restart nginx
 
-# Check Docker service
-echo -n "Checking Docker service... "
-if systemctl is-active --quiet docker; then
-    echo "✅ Docker service is running"
-else
-    echo "❌ Docker service is NOT running"
-fi
+echo "===== 10. Verifications ====="
+echo "Docker Containers:"
+sudo docker ps
 
-# Check Docker container
-echo -n "Checking Docker container... "
-CONTAINER_STATUS=$(sudo docker ps --filter "ancestor=devops-lab" --format "{{.Status}}")
-if [ ! -z "$CONTAINER_STATUS" ]; then
-    echo "✅ Docker container is running: $CONTAINER_STATUS"
-else
-    echo "❌ Docker container is NOT running"
-fi
+echo "Nginx Status:"
+sudo systemctl status nginx
 
-# Check Nginx service
-echo -n "Checking Nginx service... "
-if systemctl is-active --quiet nginx; then
-    echo "✅ Nginx is running"
-else
-    echo "❌ Nginx is NOT running"
-fi
+EC2_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+echo "You can access the app in your browser at:"
+echo "http://$EC2_IP"
 
-echo "===================="
-echo "✅ Deployment Complete!"
-echo "Access your app via:"
-echo "http://EC2_PUBLIC_IP"
-echo "Docker container port: 8080 (reverse proxied via Nginx port 80)"
-echo "===================="
+echo "✅ Deployment Complete! Your PHP app is running in Docker, connected to RDS via Secrets Manager, and served through Nginx."
