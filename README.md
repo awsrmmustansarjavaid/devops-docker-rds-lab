@@ -282,12 +282,39 @@ Hello from Docker!
 
 ### 5️⃣ — Install Nginx
 
+#### 1️⃣ Install Nginx:
+
 ```
-sudo yum install nginx -y
+sudo dnf install nginx -y
+```
+
+#### 2️⃣ Start Nginx:
+
+```
 sudo systemctl start nginx
+```
+
+#### 3️⃣ Enable at boot:
+
+```
 sudo systemctl enable nginx
+```
+
+#### 4️⃣ Verify:
+
+```
 sudo systemctl status nginx
 ```
+
+#### 5️⃣ Open browser:
+
+```
+http://EC2_PUBLIC_IP
+```
+
+You should see Nginx welcome page.
+
+
 
 ### 4️⃣ — Clone your project repo
 
