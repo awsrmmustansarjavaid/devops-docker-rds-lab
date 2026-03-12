@@ -1130,7 +1130,39 @@ Perfect! Now we’ll upgrade your script to use Docker Compose so it can:
 
 ### ✅ Here’s a full Docker Compose + Bash script setup for your Charlie Café lab.
 
-### Step 1: Create Docker Compose File (docker-compose.yml)
+### Step 1: Install Docker Compose Plugin (v2 style)
+
+Amazon Linux 2023 uses Docker Compose as a plugin, not a separate binary. Run:
+
+```
+sudo dnf install -y docker-compose-plugin
+```
+
+#### Check it is installed:
+
+```
+docker compose version
+```
+
+> #### Notice: no dash between docker and compose now. You run it as docker compose (v2 style), not docker-compose.
+
+### Step 2: Update Your Script to Use New Docker Compose Command
+
+In your bash script, replace:
+
+```
+docker-compose up -d
+```
+
+with:
+
+```
+docker compose up -d
+```
+
+And anywhere else you use docker-compose, replace with docker compose.
+
+### Step 3: Create Docker Compose File (docker-compose.yml)
 
 ```
 version: '3.9'
@@ -1149,7 +1181,7 @@ services:
 
 - Container stays alive so you can exec commands from the bash script.
 
-### Step 2: Docker Compose + Bash Script (Recommanded)
+### Step 4: Docker Compose + Bash Script (Recommanded)
 
 ```
 #!/bin/bash
@@ -1266,6 +1298,16 @@ run_mysql "USE $DB_NAME; SHOW TABLES; SELECT * FROM $TABLE_NAME;"
 
 log "🎉 Charlie Café Docker Compose MariaDB setup complete!"
 ```
+
+### Step 5: Run the Script Again
+
+```
+sudo ./connect-rds.sh
+```
+
+Now it should pass the “Docker Compose not installed” check and start your MariaDB client container.
+
+#### 💡 Tip: On Amazon Linux 2023, you don’t need the old docker-compose binary. Always use the plugin style (docker compose …).
 
 #### ✅ Key Improvements with Docker Compose
 
