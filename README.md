@@ -1,4 +1,8 @@
-## 🔥 Full DevOps Lab — Charlie Café Project (Beginner → Advanced)
+# 🔥 Full DevOps Lab —  ☕ Charlie Café DevOps Project Lab (Beginner → Advanced)
+
+## Docker + RDS + Secrets Manager + Nginx + CI/CD
+
+### For Amazon Linux 2023
 
 ### Goal:
 
@@ -40,6 +44,8 @@ dbname: cafe_db
 - Secrets Manager entry for RDS credentials
 
 - GitHub repository for your project
+
+### 1️⃣ Charlie Café Project DOC
 
 ### 1️⃣ Dockerfile
 
@@ -147,29 +153,134 @@ devops-docker-rds-lab/
 
 - Nginx reverse proxy routes port 80 → Docker container
 
-### 1️⃣ — Connect to EC2 and update system
+### 2️⃣ Charlie Café Project Configurations
+
+### 1️⃣ — Launch EC2 Instance
+
+- Create an EC2 instance in Amazon Web Services.
+
+- Settings:
+
+| Setting        | Value             |
+| -------------- | ----------------- |
+| AMI            | Amazon Linux 2023 |
+| Instance       | t2.micro          |
+| Key pair       | Public.pem        |
+| Security Group | Allow 22, 80      |
+
+- Ports required:
+
+| Port | Purpose          |
+| ---- | ---------------- |
+| 22   | SSH              |
+| 80   | Web              |
+| 8080 | Docker container |
+
+### 2️⃣ Connect to EC2
+
+- From your local computer:
 
 ```
-ssh -i "Public.pem" ec2-user@ec2-3-239-78-159.compute-1.amazonaws.com
-sudo yum update -y
+ssh -i Public.pem ec2-user@YOUR_EC2_PUBLIC_IP
 ```
 
-### ✅ Verify system updated:
+#### Example:
 
 ```
-sudo yum list updates
+ssh -i Public.pem ec2-user@3.239.78.159
 ```
 
-### 2️⃣ — Install Docker
+### 3️⃣ Update Amazon Linux 2023
+
+- Amazon Linux 2023 uses dnf.
 
 ```
-sudo yum install docker -y
+sudo dnf update -y
+```
+
+#### ✅ Verify:
+
+```
+cat /etc/os-release
+```
+
+### ✅ Expected:
+
+```
+Amazon Linux 2023
+```
+
+### 2️⃣ Install Git
+
+```
+sudo dnf install git -y
+```
+
+#### ✅ Verify:
+
+```
+git --version
+```
+
+### 3️⃣ Install Docker
+
+#### 1️⃣ Install Docker:
+
+```
+sudo dnf install docker -y
+```
+
+#### 2️⃣ Start Docker:
+
+```
 sudo systemctl start docker
+```
+
+#### 3️⃣ Enable Docker at boot:
+
+```
 sudo systemctl enable docker
+```
+
+#### 4️⃣ Check Docker:
+
+```
 docker --version
 ```
 
-### 3️⃣ — Install Nginx
+#### ✅ Example output:
+
+```
+Docker version 24.x
+```
+
+### 4️⃣ Allow ec2-user to run Docker
+
+#### 1️⃣ Without sudo:
+
+```
+sudo usermod -aG docker ec2-user
+```
+
+#### 2️⃣ Reload group permissions:
+
+```
+newgrp docker
+```
+
+#### 3️⃣ Test Docker:
+
+```
+docker run hello-world
+```
+
+#### ✅ Expected:
+
+```
+Hello from Docker!
+```
+
+### 5️⃣ — Install Nginx
 
 ```
 sudo yum install nginx -y
