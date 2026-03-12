@@ -314,15 +314,199 @@ http://EC2_PUBLIC_IP
 
 You should see Nginx welcome page.
 
+### 6️⃣ — Clone Your GitHub Repository
 
+#### ✅ Your repo example:
 
-### 4️⃣ — Clone your project repo
+```
+devops-docker-rds-lab
+```
+
+#### 1️⃣ Clone:
 
 ```
 git clone https://github.com/awsrmmustansarjavaid/devops-docker-rds-lab.git
-cd devops-docker-rds-lab
-sudo chmod +x deploy.sh
 ```
+
+#### 2️⃣ Enter project folder:
+
+```
+cd devops-docker-rds-lab
+```
+
+#### 3️⃣ Verify:
+
+```
+ls
+```
+
+#### ✅ Expected:
+
+```
+Dockerfile
+deploy.sh
+app
+README.md
+.github
+```
+
+### ✅ Verify Folder Structure
+
+Must look like this:
+
+```
+devops-docker-rds-lab
+│
+├── Dockerfile
+├── deploy.sh
+│
+├── app
+│   └── index.php
+│
+└── .github
+    └── workflows
+        └── deploy.yml
+```
+
+### 7️⃣ — Build Docker Image
+
+#### 1️⃣ Run:
+
+```
+docker build -t devops-lab .
+```
+
+#### 2️⃣ Verify image:
+
+```
+docker images
+```
+
+#### ✅ Expected:
+
+```
+devops-lab
+```
+
+### 8️⃣ — Run Docker Container
+
+#### 1️⃣ Run container on port 8080:
+
+```
+docker run -d -p 8080:80 devops-lab
+```
+
+#### 2️⃣ Check running containers:
+
+```
+docker ps
+```
+
+#### ✅ Expected:
+
+```
+PORTS
+0.0.0.0:8080->80
+```
+
+### 8️⃣ — Test Container
+
+#### 1️⃣ Open browser:
+
+```
+http://EC2_PUBLIC_IP:8080
+```
+
+#### ✅ Expected Page:
+
+```
+DevOps Lab Connected to RDS Successfully
+```
+
+### 9️⃣ — Configure Nginx Reverse Proxy
+
+#### 1️⃣ Create config file:
+
+```
+sudo nano /etc/nginx/conf.d/devops.conf
+```
+
+#### 2️⃣ Paste:
+
+```
+server {
+    listen 80;
+    server_name _;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+#### 3️⃣ Save:
+
+```
+CTRL+O
+ENTER
+CTRL+X
+```
+
+### 🔟 — Verification
+
+#### 1️⃣ Test Nginx Config
+
+```
+sudo nginx -t
+```
+
+#### ✅ Expected:
+
+```
+syntax is ok
+test is successful
+```
+
+#### 2️⃣ — Restart Nginx
+
+```
+sudo systemctl restart nginx
+```
+
+#### 3️⃣ — Test Reverse Proxy
+
+#### ✅ Open browser:
+
+```
+http://EC2_PUBLIC_IP
+```
+
+#### ✅ Now:
+
+```
+Port 80 → Nginx → Docker → PHP App
+```
+
+### 4️⃣ — Verify Secrets Manager Access
+
+#### ✅ Your PHP code reads secret:
+
+```
+CafeDevDBSM
+```
+
+- From AWS Secrets Manager.
+
+- Your EC2 must have IAM Role.
+
+- Attach IAM Role with permission:
+
+
+
+
 
 ### 5️⃣  — Write deploy.sh script
 
