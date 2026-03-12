@@ -1803,25 +1803,26 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
+
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Set up SSH
+    - name: Setup SSH
       uses: webfactory/ssh-agent@v0.8.1
       with:
         ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-    - name: Copy files to EC2
+    - name: Copy Files to EC2
       run: |
-        scp -o StrictHostKeyChecking=no -r * ec2-user@ec2-32-195-65-23.compute-1.amazonaws.com:/home/ec2-user/devops-docker-rds-lab
+        scp -o StrictHostKeyChecking=no -r * ec2-user@EC2_PUBLIC_IP:/home/ec2-user/devops-docker-rds-lab
 
-    - name: Run deploy script on EC2
+    - name: Deploy on EC2
       run: |
-        ssh -o StrictHostKeyChecking=no ec2-user@ec2-32-195-65-23.compute-1.amazonaws.com "cd /home/ec2-user/devops-docker-rds-lab && sudo ./deploy.sh"
+        ssh -o StrictHostKeyChecking=no ec2-user@EC2_PUBLIC_IP "cd devops-docker-rds-lab && sudo ./deploy.sh"
 ```
 
 - Replace EC2_PUBLIC_IP with your EC2 public IP.
