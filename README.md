@@ -580,7 +580,7 @@ ssh -i Public.pem ec2-user@YOUR_EC2_PUBLIC_IP
 ssh -i Public.pem ec2-user@3.239.78.159
 ```
 
-### 3️⃣ Update Amazon Linux 2023
+### 3️⃣ Update & Installation Amazon Linux 2023
 
 - Amazon Linux 2023 uses dnf.
 
@@ -703,6 +703,39 @@ http://EC2_PUBLIC_IP
 ```
 
 You should see Nginx welcome page.
+
+### 6️⃣ — Install MariaDB client
+
+```
+sudo dnf install -y mariadb105
+```
+
+#### ✅ Verify mysql:
+
+```
+mysql --version
+```
+
+#### ✅ Login to MariaDB:
+
+```
+mysql -h <rds-endpoint> -u cafe_user -p
+```
+
+or
+
+#### 🛠️ BASH SCRIPT (Safe RDS Connection)
+> #### 📄 connect-rds.sh
+
+```
+sudo nano connect-rds.sh
+```
+
+
+
+
+
+
 
 ### 6️⃣ — Clone Your GitHub Repository
 
