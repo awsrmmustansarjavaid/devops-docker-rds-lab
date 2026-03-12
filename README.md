@@ -877,6 +877,88 @@ sudo ./connect-rds.sh
 - Verification queries to check table creation and inserted data
 
 - Full error checking with exit codes
+ 
+### ✅ Method 2 Dockerized ( Recommanded)
+
+Instead of installing mariadb105 directly on your EC2, you can run the MariaDB client inside a Docker container.
+
+#### Benefits:
+
+- No dependency on EC2 OS package versions
+
+- Easily portable across environments
+
+- Cleaner, isolated execution
+
+### 1️⃣ Use Dockerized MariaDB Client (Optional but Cleaner)
+
+#### Example Command in Script:
+
+```
+docker run --rm mariadb:10.11.6 mariadb -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;"
+```
+
+This runs MariaDB client temporarily just for the command.
+
+### 2️⃣  Dynamic Random Table & Data Creation
+
+Instead of hardcoding sample data, generate random table rows in Bash:
+
+```
+TABLE_NAME="employees"
+ROWS=5
+
+for i in $(seq 1 $ROWS); do
+  NAME="Employee_$RANDOM"
+  ROLE="Role_$((RANDOM % 5 + 1))"
+  mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" $DB_NAME \
+        -e "INSERT INTO $TABLE_NAME (name, role) VALUES ('$NAME', '$ROLE');"
+done
+```
+
+✅ This makes your script look more like real DevOps automation, generating data dynamically.
+
+### 3️⃣ Add Logging for Each Step
+
+Add timestamps and log messages to track execution:
+
+```
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
+log "Installing MariaDB client..."
+```
+
+This is standard for production scripts.
+
+### 4️⃣ Verify Table & Data After Creation
+
+Already included in your script:
+
+```
+mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME; SELECT * FROM $TABLE_NAME;"
+```
+
+You can also fail the script if the verification fails:
+
+```
+if [[ $? -ne 0 ]]; then
+  log "❌ Table verification failed"
+  exit 1
+fi
+```
+
+### 5️⃣ Optional: Use AWS Parameter for DB Name
+
+Instead of hardcoding cafe_db, use an environment variable or script argument:
+
+```
+DB_NAME="${1:-cafe_db}"
+```
+
+This allows the script to be reused for multiple databases.
+
 
 ### 4️⃣ — Clone Your GitHub Repository
 
