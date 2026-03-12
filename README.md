@@ -1149,7 +1149,7 @@ services:
 
 - Container stays alive so you can exec commands from the bash script.
 
-### Step 2: Docker Compose + Bash Script (setup-db.sh)
+### Step 2: Docker Compose + Bash Script (Recommanded)
 
 ```
 #!/bin/bash
