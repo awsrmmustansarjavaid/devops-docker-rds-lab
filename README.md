@@ -79,7 +79,7 @@ RUN composer require aws/aws-sdk-php
 EXPOSE 80
 ```
 
-2️⃣ index.php
+### 2️⃣ index.php
 
 Create folder app/ inside your repo and add index.php:
 
@@ -129,6 +129,84 @@ try {
     echo "Error retrieving secret: " . $e->getMessage();
 }
 ```
+
+### 3️⃣ — Create deploy.sh (Amazon Linux 2023 version)
+
+#### ✅ Replace with this working version:
+
+```
+#!/bin/bash
+
+echo "Updating system"
+sudo dnf update -y
+
+echo "Installing Docker"
+sudo dnf install docker -y
+sudo systemctl start docker
+sudo systemctl enable docker
+
+echo "Stopping old containers"
+OLD=$(sudo docker ps -q)
+
+if [ ! -z "$OLD" ]; then
+ sudo docker stop $OLD
+ sudo docker rm $OLD
+fi
+
+echo "Building Docker image"
+sudo docker build -t devops-lab .
+
+echo "Running container"
+sudo docker run -d -p 8080:80 devops-lab
+
+echo "Installing Nginx"
+sudo dnf install nginx -y
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
+echo "Configuring reverse proxy"
+
+sudo tee /etc/nginx/conf.d/devops.conf > /dev/null <<EOF
+server {
+ listen 80;
+ server_name _;
+
+ location / {
+  proxy_pass http://127.0.0.1:8080;
+
+  proxy_set_header Host \$host;
+  proxy_set_header X-Real-IP \$remote_addr;
+ }
+}
+EOF
+
+echo "Testing Nginx"
+sudo nginx -t
+
+echo "Restarting Nginx"
+sudo systemctl restart nginx
+
+echo "Deployment complete"
+
+EC2IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+
+echo "Access your app:"
+echo "http://$EC2IP"
+```
+
+#### ✅ Make Script Executable
+
+```
+sudo chmod +x deploy.sh
+```
+
+#### ✅ Run:
+
+```
+sudo ./deploy.sh
+```
+
+
 
 ### 3️⃣ Folder Structure
 
@@ -502,7 +580,20 @@ CafeDevDBSM
 
 - Your EC2 must have IAM Role.
 
-- Attach IAM Role with permission:
+#### ✅ Attach IAM Role with permission:
+
+```
+SecretsManagerReadWrite
+```
+
+#### ✅ or minimal policy:
+
+```
+secretsmanager:GetSecretValue
+```
+
+
+
 
 
 
