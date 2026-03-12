@@ -1874,6 +1874,67 @@ This single lab now demonstrates all core DevOps skills:
 - GitHub Actions CI/CD
 
 It’s a strong DevOps portfolio project for your resume.
+
+---
+## 🌐 Amazon Linux 2023
+
+### 1️⃣ Delete all directories in the current directory
+
+```
+sudo rm -rf */
+```
+
+#### Explanation:
+
+* → matches everything in the current directory
+
+/ → ensures only directories are matched
+
+-r → recursive (delete all contents inside)
+
+-f → force (no prompt)
+
+⚠️ Warning: This will permanently delete all directories and their contents in your current folder. Make sure you’re in the correct path (pwd to check).
+
+### 2️⃣ Delete a specific directory
+
+```
+sudo rm -rf directory_name
+```
+
+Example:
+
+```
+rm -rf myfolder
+```
+
+- This deletes myfolder and everything inside it.
+
+- Works even if the directory is not empty.
+
+### 3️⃣ Combine: Delete a specific directory AND all others except some files
+
+If you want to delete all directories but keep certain files, you can do:
+
+```
+find . -maxdepth 1 -type d ! -name '.' -exec rm -rf {} +
+```
+
+-maxdepth 1 → only current folder, not subfolders
+
+-type d → only directories
+
+! -name '.' → exclude current directory itself
+
+-exec rm -rf {} + → delete each directory found
+
+#### 💡 Tip: Always double-check before running destructive commands:
+
+```
+ls -d */
+```
+
+This lists all directories in the current folder so you can confirm before deleting.
 ---
 
 
