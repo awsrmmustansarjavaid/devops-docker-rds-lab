@@ -559,19 +559,25 @@ devops-docker-rds-lab/
 
 - ✔️ Create
 
-#### 2️⃣ Create Security Group for RDS
+#### 2️⃣ Default Security Group
 
-- VPC → Security Groups → Create
+- Name: charlie-default-sg
 
-- Name: CafeRDS-SG
+- Attached to: RDS, any EC2/other resources
 
-- Inbound:
+- Inbound Rules:
 
-MySQL/Aurora (3306) → Source: Lambda-SG
-MySQL/Aurora (3306) → Source: EC2-Web-SG
-Outbound: All
+| Type         | Protocol | Port Range | Source                                              |
+| ------------ | -------- | ---------- | --------------------------------------------------- |
+| SSH          | TCP      | 22         | 0.0.0.0/0 (or your IP)                              |
+| HTTP         | TCP      | 80         | 0.0.0.0/0                                           |
+| HTTPS        | TCP      | 443        | 0.0.0.0/0                                           |
+| MySQL/Aurora | TCP      | 3306       | 0.0.0.0/0                                           |
+| ALL TCP      | TCP      | 0-65535    | 0.0.0.0/0                                           |
 
-- ✔️ Create
+- Outbound Rules:
+
+  - All traffic allowed (default)
 
 #### 3️⃣ Create RDS Instance
 
