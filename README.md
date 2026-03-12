@@ -26,6 +26,36 @@ Deploy a PHP app using Docker on EC2, connect to RDS using Secrets Manager, setu
 
 - CI/CD pipeline with GitHub Actions
 
+### Architecture of Lab
+
+```
+GitHub
+   │
+   │ push
+   ▼
+CI/CD Workflow
+   │
+   ▼
+EC2 Instance
+   │
+   ├── Docker Container
+   │        │
+   │        ▼
+   │      PHP App
+   │        │
+   │        ▼
+   │   AWS Secrets Manager
+   │        │
+   │        ▼
+   │       RDS
+   │
+   ▼
+Nginx Reverse Proxy
+   │
+   ▼
+Browser
+```
+
 ### Step 0 — Pre-requisites
 
 - AWS account with EC2, RDS, Secrets Manager configured
