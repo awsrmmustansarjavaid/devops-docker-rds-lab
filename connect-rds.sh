@@ -1,101 +1,113 @@
 #!/bin/bash
 
 # ==========================================================
-# CHARLIE CAFÉ RDS MARIADB SETUP SCRIPT
+# CHARLIE CAFÉ DOCKER COMPOSE + MARIADB SETUP SCRIPT
 # ==========================================================
-# This script installs MariaDB client on Amazon Linux 2023,
-# connects to an RDS MySQL/MariaDB instance using AWS Secrets,
-# creates a database, a random table, inserts sample data,
-# and verifies the creation.
+# This script:
+# 1️⃣ Starts a MariaDB client container via Docker Compose
+# 2️⃣ Fetches AWS RDS credentials from Secrets Manager
+# 3️⃣ Creates database, table, inserts random data
+# 4️⃣ Verifies creation
 # ==========================================================
 
 # ===============================
 # CONFIGURATION
 # ===============================
-
 SECRET_ID="CafeDevDBSM"
 AWS_REGION="us-east-1"
 DB_NAME="cafe_db"
 TABLE_NAME="employees"
+ROWS=5
 
 # ===============================
-# INSTALL MARIADB CLIENT
+# LOGGING FUNCTION
 # ===============================
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
 
-echo "🔹 Installing MariaDB client..."
-sudo dnf install -y mariadb105
-
-# Verify installation
-echo "🔹 Verifying MariaDB client version..."
-mysql --version
-if [[ $? -ne 0 ]]; then
-  echo "❌ MariaDB client installation failed!"
-  exit 1
+# ===============================
+# CHECK DOCKER & DOCKER-COMPOSE
+# ===============================
+if ! command -v docker &> /dev/null; then
+    log "❌ Docker not installed."
+    exit 1
 fi
+if ! command -v docker-compose &> /dev/null; then
+    log "❌ Docker Compose not installed."
+    exit 1
+fi
+log "✅ Docker and Docker Compose are installed"
 
 # ===============================
-# FETCH SECRET
+# START DOCKER COMPOSE SERVICE
 # ===============================
+log "🔹 Starting MariaDB client container..."
+docker-compose up -d
 
-echo "🔹 Fetching RDS credentials from Secrets Manager..."
+# ===============================
+# FETCH AWS RDS CREDENTIALS
+# ===============================
+log "🔹 Fetching RDS credentials from AWS Secrets Manager..."
 SECRET_JSON=$(aws secretsmanager get-secret-value \
   --secret-id "$SECRET_ID" \
   --region "$AWS_REGION" \
   --query SecretString \
   --output text)
 
-# ===============================
-# PARSE VALUES
-# ===============================
-
 DB_USER=$(echo "$SECRET_JSON" | jq -r '.username')
 DB_PASS=$(echo "$SECRET_JSON" | jq -r '.password')
 DB_HOST=$(echo "$SECRET_JSON" | jq -r '.host')
 
-# ===============================
-# VALIDATION
-# ===============================
-
 if [[ -z "$DB_USER" || -z "$DB_PASS" || -z "$DB_HOST" ]]; then
-  echo "❌ Failed to retrieve database credentials"
-  exit 1
+    log "❌ Failed to retrieve database credentials"
+    exit 1
 fi
-
-echo "✅ RDS credentials retrieved successfully"
+log "✅ RDS credentials retrieved successfully"
 
 # ===============================
-# CONNECT TO MYSQL & CREATE DB
+# FUNCTION TO RUN MYSQL COMMANDS INSIDE CONTAINER
 # ===============================
+run_mysql() {
+    local sql="$1"
+    docker exec -i mariadb-client mariadb \
+        -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" \
+        -e "$sql"
+}
 
-echo "🔹 Connecting to RDS and creating database '$DB_NAME'..."
-mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" <<EOF
-CREATE DATABASE IF NOT EXISTS $DB_NAME;
-USE $DB_NAME;
+# ===============================
+# CREATE DATABASE
+# ===============================
+log "🔹 Creating database '$DB_NAME'..."
+run_mysql "CREATE DATABASE IF NOT EXISTS $DB_NAME;"
 
-# Create a random table with sample data
+# ===============================
+# CREATE TABLE
+# ===============================
+log "🔹 Creating table '$TABLE_NAME'..."
+run_mysql "USE $DB_NAME;
 CREATE TABLE IF NOT EXISTS $TABLE_NAME (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     role VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+);"
 
-# Insert sample data
-INSERT INTO $TABLE_NAME (name, role) VALUES 
-('Alice', 'Barista'),
-('Bob', 'Cashier'),
-('Charlie', 'Manager');
+# ===============================
+# INSERT RANDOM SAMPLE DATA
+# ===============================
+log "🔹 Inserting $ROWS random sample rows..."
+for i in $(seq 1 $ROWS); do
+    NAME="Employee_$RANDOM"
+    ROLE="Role_$((RANDOM % 5 + 1))"
+    run_mysql "USE $DB_NAME; INSERT INTO $TABLE_NAME (name, role) VALUES ('$NAME', '$ROLE');"
+done
+log "✅ Sample data inserted successfully"
 
-# Verify table creation
-SHOW TABLES;
-SELECT * FROM $TABLE_NAME;
-EOF
+# ===============================
+# VERIFY TABLE & DATA
+# ===============================
+log "🔹 Verifying table and data..."
+run_mysql "USE $DB_NAME; SHOW TABLES; SELECT * FROM $TABLE_NAME;"
 
-if [[ $? -eq 0 ]]; then
-  echo "✅ Database, table, and sample data created successfully"
-else
-  echo "❌ Failed to create database or table"
-  exit 1
-fi
-
-echo "🎉 Charlie Café MariaDB setup complete!"
+log "🎉 Charlie Café Docker Compose MariaDB setup complete!"
